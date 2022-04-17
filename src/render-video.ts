@@ -11,7 +11,7 @@ type RenderVideoOptions = {
   renderView: (timeSeconds: number, context: CanvasRenderingContext2D) => void
 }
 
-const resolution = [640, 360] as const
+const resolution = [640, 480] as const
 const framesPerSecond = 60
 
 export async function renderVideo(options: RenderVideoOptions) {
