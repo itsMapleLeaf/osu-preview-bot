@@ -6,7 +6,7 @@
     "lint": "eslint --ext js,ts,tsx .",
     "lint-fix": "pnpm lint -- --fix",
     "format": "prettier --write .",
-    "start": "esmo --no-warnings --inspect src/main.ts",
+    "start": "esmo --no-warnings src/main.ts",
     "dev": "nodemon --exec esmo --no-warnings --inspect src/main.ts",
     "typecheck": "tsc --noEmit"
   },
