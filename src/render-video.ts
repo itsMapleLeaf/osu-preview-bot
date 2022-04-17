@@ -2,7 +2,10 @@ import type { CanvasRenderingContext2D } from "canvas"
 import { Canvas } from "canvas"
 import { execa } from "execa"
 import pathToFfmpeg from "ffmpeg-static"
+import { once } from "node:events"
 import { rm } from "node:fs/promises"
+import { PassThrough } from "node:stream"
+import { pipeline } from "node:stream/promises"
 
 type RenderVideoOptions = {
   signal: AbortSignal
@@ -23,12 +26,11 @@ export async function renderVideo(options: RenderVideoOptions) {
     "-f rawvideo",
     `-video_size ${resolution[0]}x${resolution[1]}`,
     `-framerate ${framesPerSecond}`,
-    "-pix_fmt bgra", // allows playback in some video players like vlc
+    "-pix_fmt bgra",
     "-i -",
 
     // output options
-    // "-preset ultrafast",
-    // "-pix_fmt yuv420p", // allows playback in some video players like vlc
+    "-movflags faststart", // need this to add audio later
     videoOutputPath,
   ].flatMap((s) => s.split(/\s+/))
 
@@ -52,6 +54,12 @@ export async function renderVideo(options: RenderVideoOptions) {
       signal: options.signal,
     })
 
+    const frameStream = new PassThrough({
+      highWaterMark: 1024 ** 2,
+    })
+
+    const framePipeline = pipeline([frameStream, videoProcess.stdin!])
+
     const canvas = new Canvas(...resolution)
     const context = canvas.getContext("2d")
 
@@ -61,11 +69,15 @@ export async function renderVideo(options: RenderVideoOptions) {
       frame += 1
     ) {
       options.renderView(frame / framesPerSecond, context)
-      videoProcess.stdin!.write(canvas.toBuffer("raw"))
-    }
-    videoProcess.stdin!.end()
 
-    await videoProcess
+      const canContinueWriting = frameStream.write(canvas.toBuffer("raw"))
+      if (!canContinueWriting) {
+        await once(frameStream, "drain")
+      }
+    }
+    frameStream.end()
+
+    await Promise.all([framePipeline, videoProcess])
 
     await execa(pathToFfmpeg, audioArgs, {
       input: options.audio,
