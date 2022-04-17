@@ -1,6 +1,6 @@
+import { createBeatmapRenderer } from "./beatmap-renderer"
 import { BeatmapSet } from "./beatmap-set"
 import { renderVideo } from "./render-video"
-import { createBeatmapRenderer } from "./view-renderer"
 
 const beatmapSetId = "647383"
 const beatmapId = "1377665"
