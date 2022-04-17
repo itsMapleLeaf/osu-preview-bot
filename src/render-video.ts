@@ -20,14 +20,15 @@ export async function renderVideo(options: RenderVideoOptions) {
 
   const videoArgs = [
     // input options
-    "-f png_pipe",
-    `-r ${framesPerSecond}`,
+    "-f rawvideo",
+    `-video_size ${resolution[0]}x${resolution[1]}`,
+    `-framerate ${framesPerSecond}`,
+    "-pix_fmt bgra", // allows playback in some video players like vlc
     "-i -",
 
     // output options
-    "-codec:v libx265",
-    "-preset ultrafast",
-    "-pix_fmt yuv420p", // allows playback in some video players like vlc
+    // "-preset ultrafast",
+    // "-pix_fmt yuv420p", // allows playback in some video players like vlc
     videoOutputPath,
   ].flatMap((s) => s.split(/\s+/))
 
@@ -60,7 +61,7 @@ export async function renderVideo(options: RenderVideoOptions) {
       frame += 1
     ) {
       options.renderView(frame / framesPerSecond, context)
-      videoProcess.stdin!.write(canvas.toBuffer("image/png"))
+      videoProcess.stdin!.write(canvas.toBuffer("raw"))
     }
     videoProcess.stdin!.end()
 
