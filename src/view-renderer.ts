@@ -30,7 +30,7 @@ export function createBeatmapRenderer(beatmap: Beatmap) {
         (timeSeconds - startTimeSeconds) / hitObjectDuration,
       )
       context.beginPath()
-      context.arc(hitObject.startX, hitObject.startY, 50, 0, 2 * Math.PI)
+      context.arc(hitObject.startX, hitObject.startY, 32, 0, 2 * Math.PI)
       context.fill()
     }
   }
