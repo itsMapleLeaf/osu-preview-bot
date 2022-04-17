@@ -1,5 +1,6 @@
-import AdmZip from "adm-zip"
 import got from "got"
+import JSZip from "jszip"
+import { writeFile } from "node:fs/promises"
 import { BeatmapDecoder } from "osu-parsers"
 
 export type Beatmap = ReturnType<BeatmapDecoder["decodeFromString"]>
@@ -9,20 +10,23 @@ const decoder = new BeatmapDecoder()
 export class BeatmapSet {
   private constructor(
     private readonly beatmaps: Beatmap[],
-    private readonly zipFile: AdmZip,
+    private readonly zipFile: JSZip,
   ) {}
 
   static async fromBeatmapSetId(beatmapSetId: string): Promise<BeatmapSet> {
     const buffer = await got(`https://chimu.moe/d/${beatmapSetId}`).buffer()
-    const zip = new AdmZip(buffer)
+    await writeFile("data/beatmap.zip", buffer)
 
-    zip.writeZip("data/beatmap.zip")
+    const zip = await JSZip.loadAsync(buffer)
 
-    const entries = zip.getEntries()
-    const maps = entries
-      .filter((entry) => entry.entryName.endsWith(".osu"))
-      .map((entry) => entry.getData().toString("utf8"))
-      .map((content) => decoder.decodeFromString(content))
+    const maps = await Promise.all(
+      Object.values(zip.files)
+        .filter((file) => file.name.endsWith(".osu"))
+        .map(async (file) => {
+          const content = await file.async("string")
+          return decoder.decodeFromString(content)
+        }),
+    )
 
     return new BeatmapSet(maps, zip)
   }
@@ -38,13 +42,13 @@ export class BeatmapSet {
     return this.beatmaps[index] ?? this.throwBeatmapNotFoundError(index)
   }
 
-  loadBeatmapAudio(beatmap: Beatmap): Buffer {
-    const audioFile = this.zipFile.getEntry(beatmap.general.audioFilename)
+  loadBeatmapAudio(beatmap: Beatmap): Promise<Buffer> {
+    const audioFile = this.zipFile.file(beatmap.general.audioFilename)
     if (!audioFile) {
       throw new Error(`Audio file not found: ${beatmap.general.audioFilename}`)
     }
 
-    return audioFile.getData()
+    return audioFile.async("nodebuffer")
   }
 
   private throwBeatmapNotFoundError(beatmapId: string | number): never {

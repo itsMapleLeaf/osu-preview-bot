@@ -11,12 +11,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "adm-zip": "^0.5.9",
     "canvas": "^2.9.1",
     "esno": "^0.14.1",
     "execa": "^6.1.0",
     "ffmpeg-static": "^5.0.0",
     "got": "^12.0.3",
+    "jszip": "^3.9.1",
     "osu-parsers": "^2.1.1",
     "pretty-bytes": "^6.0.0"
   },
