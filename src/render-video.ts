@@ -36,6 +36,7 @@ export async function renderVideo(options: RenderVideoOptions) {
     `-video_size ${resolution[0]}x${resolution[1]}`,
     `-framerate ${framesPerSecond}`,
     "-pix_fmt bgra",
+    `-t ${options.durationSeconds}`,
     "-i -",
 
     // output options
@@ -47,9 +48,11 @@ export async function renderVideo(options: RenderVideoOptions) {
   const audioArgs = [
     // audio input from buffer
     "-f mp3",
+    `-t ${options.durationSeconds}`,
     "-i -",
 
     // video input from file
+    `-t ${options.durationSeconds}`,
     `-i ${videoOutputPath}`,
 
     // output options
