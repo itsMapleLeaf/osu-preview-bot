@@ -25,23 +25,23 @@ const animations = (object: HittableObject): Animations[] => [
   },
 
   // approach circle
-  {
-    start: -0.42,
-    end: 0,
-    render: (context, progress) => {
-      const approachCircleScale = lerpClamped(4, 1, progress)
+  // {
+  //   start: -0.42,
+  //   end: 0,
+  //   render: (context, progress) => {
+  //     const approachCircleScale = lerpClamped(4, 1, progress)
 
-      context.scale(approachCircleScale, approachCircleScale)
+  //     context.scale(approachCircleScale, approachCircleScale)
 
-      context.strokeStyle = "cornflowerblue"
-      context.lineWidth = 3
-      context.globalAlpha = progress
+  //     context.strokeStyle = "cornflowerblue"
+  //     context.lineWidth = 3
+  //     context.globalAlpha = progress
 
-      context.beginPath()
-      context.arc(0, 0, 32, 0, 2 * Math.PI)
-      context.stroke()
-    },
-  },
+  //     context.beginPath()
+  //     context.arc(0, 0, 32, 0, 2 * Math.PI)
+  //     context.stroke()
+  //   },
+  // },
 
   // hit explosion
   {
