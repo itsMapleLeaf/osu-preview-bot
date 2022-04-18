@@ -8,7 +8,7 @@ import { PassThrough } from "node:stream"
 import { pipeline } from "node:stream/promises"
 
 type RenderVideoOptions = {
-  signal: AbortSignal
+  signal?: AbortSignal
   durationSeconds: number
   audio: Buffer
   renderView: (timeSeconds: number, context: CanvasRenderingContext2D) => void
@@ -17,9 +17,18 @@ type RenderVideoOptions = {
 const resolution = [640, 480] as const
 const framesPerSecond = 60
 
+const targetFileSizeBytes = 1024 * 1024 * 8
+
 export async function renderVideo(options: RenderVideoOptions) {
   const videoOutputPath = `data/output-${Date.now()}.video.mp4`
-  const outputPath = `data/output.mp4`
+  const outputPath = `data/output-${Date.now()}.mp4`
+
+  const targetTotalKbps = floorToNearest(
+    ((targetFileSizeBytes * 8) / 1024 / options.durationSeconds) * 0.9,
+    8,
+  )
+
+  const targetAudioKbps = Math.min(128, targetTotalKbps * 0.5)
 
   const videoArgs = [
     // input options
@@ -30,13 +39,12 @@ export async function renderVideo(options: RenderVideoOptions) {
     "-i -",
 
     // output options
+    "-c:v libx264",
     "-movflags faststart", // need this to add audio later
     videoOutputPath,
   ].flatMap((s) => s.split(/\s+/))
 
   const audioArgs = [
-    "-y",
-
     // audio input from buffer
     "-f mp3",
     "-i -",
@@ -45,13 +53,24 @@ export async function renderVideo(options: RenderVideoOptions) {
     `-i ${videoOutputPath}`,
 
     // output options
+    `-fs ${targetFileSizeBytes - (1024 * 1024) / 2}`, // hard maximum file size
+
+    "-c:v libx264",
+    `-b:v ${targetTotalKbps - targetAudioKbps}k`,
+    `-bufsize:v ${targetTotalKbps - targetAudioKbps}k`,
+    "-pix_fmt yuv420p", // allows playback on some video players & discord
+
+    "-c:a aac",
+    `-b:a ${targetAudioKbps}k`,
+    `-bufsize:a ${targetTotalKbps - targetAudioKbps}k`,
+
     outputPath,
   ].flatMap((s) => s.split(/\s+/))
 
   try {
     const videoProcess = execa(pathToFfmpeg, videoArgs, {
-      stderr: "inherit",
       signal: options.signal,
+      stderr: "inherit",
     })
 
     const frameStream = new PassThrough({
@@ -81,12 +100,16 @@ export async function renderVideo(options: RenderVideoOptions) {
 
     await execa(pathToFfmpeg, audioArgs, {
       input: options.audio,
-      stderr: "inherit",
       signal: options.signal,
+      stderr: "inherit",
     })
 
     return outputPath
   } finally {
     await rm(videoOutputPath, { force: true })
   }
+}
+
+function floorToNearest(value: number, step: number) {
+  return Math.floor(value / step) * step
 }

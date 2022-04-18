@@ -1,6 +1,5 @@
 import got from "got"
 import JSZip from "jszip"
-import { writeFile } from "node:fs/promises"
 import { BeatmapDecoder } from "osu-parsers"
 
 export type Beatmap = ReturnType<BeatmapDecoder["decodeFromString"]>
@@ -9,14 +8,12 @@ const decoder = new BeatmapDecoder()
 
 export class BeatmapSet {
   private constructor(
-    private readonly beatmaps: Beatmap[],
+    readonly beatmaps: Beatmap[],
     private readonly zipFile: JSZip,
   ) {}
 
   static async fromBeatmapSetId(beatmapSetId: string): Promise<BeatmapSet> {
     const buffer = await got(`https://chimu.moe/d/${beatmapSetId}`).buffer()
-    await writeFile("data/beatmap.zip", buffer)
-
     const zip = await JSZip.loadAsync(buffer)
 
     const maps = await Promise.all(
