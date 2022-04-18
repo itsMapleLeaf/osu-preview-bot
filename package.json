@@ -1,5 +1,6 @@
 {
   "name": "osu-preview",
+  "type": "module",
   "license": "MIT",
   "private": true,
   "scripts": {
