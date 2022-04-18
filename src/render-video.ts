@@ -98,11 +98,20 @@ export async function renderVideo(options: RenderVideoOptions) {
 
     await Promise.all([framePipeline, videoProcess])
 
+    try {
     await execa(pathToFfmpeg, audioArgs, {
       input: options.audio,
       signal: options.signal,
       stderr: "inherit",
     })
+    } catch (error: any) {
+      if (error?.code === "EPIPE") {
+        // ffmpeg has closed the pipe, so we can safely ignore this error
+        // and just assume the video was written successfully
+      } else {
+        throw error
+      }
+    }
 
     return outputPath
   } finally {
