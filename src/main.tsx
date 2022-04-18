@@ -99,18 +99,19 @@ const commands: BotCommand[] = [
         )
       }
 
+      let selectedIndex
       const beatmapSelectReply = reacord.ephemeralReply(interaction)
 
-      const selectedIndex = await new Promise<number | undefined>((resolve) => {
-        beatmapSelectReply.render(<BeatmapSelect onConfirm={resolve} />)
-      })
-      beatmapSelectReply.render("Starting now! You can delete this.")
-
-      if (selectedIndex === undefined) {
-        return
+      if (beatmapSet.beatmaps.length === 1) {
+        selectedIndex = 0
+      } else {
+        selectedIndex = await new Promise<number | undefined>((resolve) => {
+          beatmapSelectReply.render(<BeatmapSelect onConfirm={resolve} />)
+        })
+        if (selectedIndex === undefined) return
       }
 
-      const reply = reacord.reply(interaction)
+      beatmapSelectReply.render("Starting now! You can delete this.")
 
       const beatmap =
         beatmapSet.beatmaps[selectedIndex] ??
@@ -120,12 +121,12 @@ const commands: BotCommand[] = [
 
       const beatmapSummary = `**${beatmap.metadata.artist} - ${beatmap.metadata.title} [${beatmap.metadata.version}]**`
 
-      reply.render(
+      const reply = reacord.reply(
+        interaction,
         `<a:time:675548186672234519> <@${interaction.user.id}> Creating beatmap preview for ${beatmapSummary} (this might take a while!)`,
       )
 
       let videoPath
-
       try {
         // eslint-disable-next-line unicorn/no-array-reduce
         const latestHitObject = beatmap.hitObjects.reduce((a, b) =>
