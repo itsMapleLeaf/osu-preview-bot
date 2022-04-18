@@ -14,7 +14,7 @@ type RenderVideoOptions = {
   renderView: (timeSeconds: number, context: CanvasRenderingContext2D) => void
 }
 
-const resolution = [640, 480] as const
+const resolution = [512, 384] as const
 const framesPerSecond = 60
 
 const targetFileSizeBytes = 1024 * 1024 * 8
@@ -102,11 +102,11 @@ export async function renderVideo(options: RenderVideoOptions) {
     await Promise.all([framePipeline, videoProcess])
 
     try {
-    await execa(pathToFfmpeg, audioArgs, {
-      input: options.audio,
-      signal: options.signal,
-      stderr: "inherit",
-    })
+      await execa(pathToFfmpeg, audioArgs, {
+        input: options.audio,
+        signal: options.signal,
+        stderr: "inherit",
+      })
     } catch (error: any) {
       if (error?.code === "EPIPE") {
         // ffmpeg has closed the pipe, so we can safely ignore this error

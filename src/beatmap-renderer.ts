@@ -88,6 +88,13 @@ export function createBeatmapRenderer(beatmap: Beatmap) {
           (animation.end - animation.start)
 
         context.save()
+
+        // shrink everything from the center
+        context.translate(context.canvas.width / 2, context.canvas.height / 2)
+        context.scale(0.85, 0.85)
+        context.translate(context.canvas.width / -2, context.canvas.height / -2)
+
+        // translate to the hit object's position
         context.translate(object.startX, object.startY)
 
         animation.render(context, progress)
