@@ -53,7 +53,7 @@ export async function renderVideo(options: RenderVideoOptions) {
     `-i ${videoOutputPath}`,
 
     // output options
-    `-fs ${targetFileSizeBytes - (1024 * 1024) / 2}`, // hard maximum file size
+    `-fs ${Math.floor(targetFileSizeBytes - 1024 * 1024 * 0.1)}`, // hard maximum file size
 
     "-c:v libx264",
     `-b:v ${targetTotalKbps - targetAudioKbps}k`,
