@@ -1,70 +1,130 @@
 import type { CanvasRenderingContext2D } from "canvas"
-import type { HittableObject } from "osu-parsers"
-import type { Beatmap } from "./download-beatmaps"
-import { lerpClamped } from "./helpers/math"
+import type { Beatmap, HitObject } from "osu-classes"
+import { SlidableObject } from "osu-parsers"
+import { clamp, lerpClamped } from "./helpers/math"
 
-type Animations = {
+type Animation = {
   start: number
   end: number
   render: (context: CanvasRenderingContext2D, progress: number) => void
 }
 
-const animations = (object: HittableObject): Animations[] => [
-  // circle fading in
-  {
-    start: -0.5,
-    end: 0,
-    render: (context, progress) => {
-      context.globalAlpha = progress
-      context.fillStyle = "cornflowerblue"
+function createAnimations(object: HitObject): Animation[] {
+  const circleDiameter = 64
+  const animations: Animation[] = []
+
+  if (object instanceof SlidableObject) {
+    const renderSlider = (
+      context: CanvasRenderingContext2D,
+      animationProgress: number,
+    ) => {
+      // todo: prerender this
+      context.strokeStyle = "cornflowerblue"
+      context.lineWidth = circleDiameter
+      context.lineCap = "round"
+      context.lineJoin = "round"
 
       context.beginPath()
-      context.arc(0, 0, 32, 0, 2 * Math.PI)
-      context.fill()
+
+      const finalPosition = object.path.positionAt(1)
+      context.moveTo(finalPosition.x, finalPosition.y)
+
+      for (
+        let sliderProgress = object.duration;
+        sliderProgress > object.duration * animationProgress;
+        sliderProgress -= 10
+      ) {
+        const { x, y } = object.path.positionAt(
+          clamp(sliderProgress / object.duration, 0, 1),
+        )
+        context.lineTo(x, y)
+      }
+
+      if (animationProgress === 0) {
+        const startPosition = object.path.positionAt(0)
+        context.lineTo(startPosition.x, startPosition.y)
+      }
+
+      context.stroke()
+    }
+
+    animations.push(
+      {
+        start: -0.5,
+        end: 0,
+        render: (context, progress) => {
+          context.globalAlpha = progress
+          renderSlider(context, 0)
+        },
+      },
+      {
+        start: 0,
+        end: object.duration / 1000,
+        render: (context, progress) => {
+          renderSlider(context, progress)
+        },
+      },
+    )
+  }
+
+  animations.push(
+    {
+      start: -0.5,
+      end: 0,
+      render: (context, progress) => {
+        context.globalAlpha = progress
+        context.fillStyle = "cornflowerblue"
+
+        context.beginPath()
+        context.arc(0, 0, circleDiameter / 2, 0, 2 * Math.PI)
+        context.fill()
+      },
     },
-  },
 
-  // approach circle
-  // {
-  //   start: -0.42,
-  //   end: 0,
-  //   render: (context, progress) => {
-  //     const approachCircleScale = lerpClamped(4, 1, progress)
+    // approach circle
+    // {
+    //   start: -0.42,
+    //   end: 0,
+    //   render: (context, progress) => {
+    //     const approachCircleScale = lerpClamped(4, 1, progress)
+    //     context.scale(approachCircleScale, approachCircleScale)
+    //     context.strokeStyle = "cornflowerblue"
+    //     context.lineWidth = 3
+    //     context.globalAlpha = progress
+    //     context.beginPath()
+    //     context.arc(0, 0, circleDiameter, 0, 2 * Math.PI)
+    //     context.stroke()
+    //   },
+    // },
 
-  //     context.scale(approachCircleScale, approachCircleScale)
+    // hit explosion
+    {
+      start: 0,
+      end: 0.1,
+      render: (context, progress) => {
+        const scale = lerpClamped(1, 1.5, progress)
+        context.scale(scale, scale)
 
-  //     context.strokeStyle = "cornflowerblue"
-  //     context.lineWidth = 3
-  //     context.globalAlpha = progress
+        context.fillStyle = "cornflowerblue"
+        context.globalAlpha = 1 - progress
 
-  //     context.beginPath()
-  //     context.arc(0, 0, 32, 0, 2 * Math.PI)
-  //     context.stroke()
-  //   },
-  // },
-
-  // hit explosion
-  {
-    start: 0,
-    end: 0.1,
-    render: (context, progress) => {
-      const scale = lerpClamped(1, 1.5, progress)
-      context.scale(scale, scale)
-
-      context.fillStyle = "cornflowerblue"
-      context.globalAlpha = 1 - progress
-
-      context.beginPath()
-      context.arc(0, 0, 32, 0, 2 * Math.PI)
-      context.fill()
+        context.beginPath()
+        context.arc(0, 0, circleDiameter / 2, 0, 2 * Math.PI)
+        context.fill()
+      },
     },
-  },
-]
+  )
+
+  return animations
+}
 
 export function createBeatmapRenderer(beatmap: Beatmap) {
-  const hitObjects = [...beatmap.hitObjects].sort(
-    (a, b) => a.startTime - b.startTime,
-  )
+  const entries = [...beatmap.hitObjects]
+    .sort((a, b) => a.startTime - b.startTime)
+    .map((object) => ({
+      object,
+      animations: createAnimations(object),
+    }))
 
   return function renderView(
     timeSeconds: number,
@@ -73,11 +133,11 @@ export function createBeatmapRenderer(beatmap: Beatmap) {
     context.fillStyle = "black"
     context.fillRect(0, 0, context.canvas.width, context.canvas.height)
 
-    for (const object of hitObjects) {
+    for (const { object, animations } of entries) {
       const startTimeSeconds = object.startTime / 1000
       const relativeTimeSeconds = timeSeconds - startTimeSeconds
 
-      const currentAnimations = animations(object).filter(
+      const currentAnimations = animations.filter(
         (tween) =>
           relativeTimeSeconds >= tween.start && relativeTimeSeconds < tween.end,
       )

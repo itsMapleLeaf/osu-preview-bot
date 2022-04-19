@@ -21,6 +21,7 @@
     "got": "^12.0.3",
     "jszip": "^3.9.1",
     "lodash-es": "^4.17.21",
+    "osu-classes": "^0.6.1",
     "osu-parsers": "^2.1.1",
     "path-to-regexp": "^6.2.0",
     "pretty-bytes": "^6.0.0",

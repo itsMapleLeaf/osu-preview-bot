@@ -1,11 +1,12 @@
 import AdmZip from "adm-zip"
 import got from "got"
+import type { Beatmap } from "osu-classes"
 import { BeatmapDecoder } from "osu-parsers"
 import prettyBytes from "pretty-bytes"
 
-export type Beatmap = ReturnType<BeatmapDecoder["decodeFromString"]>
-
-export async function downloadBeatmaps(beatmapSetId: string) {
+export async function downloadBeatmaps(
+  beatmapSetId: string,
+): Promise<Beatmap[]> {
   const buffer = await got(`https://chimu.moe/d/${beatmapSetId}`).buffer()
   console.info(prettyBytes(buffer.length))
 
