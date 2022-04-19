@@ -56,7 +56,11 @@ export function createPreviewCommand(reacord: ReacordDiscordJs): BotCommand {
             <BeatmapSelect beatmapSet={beatmapSet} onConfirm={resolve} />,
           )
         })
-        if (selectedIndex === undefined) return
+        if (selectedIndex === undefined) {
+          beatmapSelectReply.render("Alright, carry on.")
+          beatmapSelectReply.deactivate()
+          return
+        }
       }
 
       beatmapSelectReply.render("Starting now! You can delete this.")
