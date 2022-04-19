@@ -1,0 +1,17 @@
+{
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "esmo --no-warnings src/main.ts",
+    "dev": "nodemon --watch src --ext ts,tsx --exec esmo --no-warnings src/main.ts"
+  },
+  "dependencies": {
+    "esno": "^0.14.1",
+    "express": "^4.17.3"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.13",
+    "@types/node": "^17.0.25",
+    "nodemon": "^2.0.15"
+  }
+}

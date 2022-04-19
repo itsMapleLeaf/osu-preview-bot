@@ -1,0 +1,29 @@
+{
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "esmo --no-warnings src/main.tsx",
+    "dev": "nodemon --watch src --ext ts,tsx --exec esmo --no-warnings src/main.tsx"
+  },
+  "dependencies": {
+    "canvas": "^2.9.1",
+    "discord.js": "^13.6.0",
+    "dotenv": "^16.0.0",
+    "esno": "^0.14.1",
+    "execa": "^6.1.0",
+    "ffmpeg-static": "^5.0.0",
+    "got": "^12.0.3",
+    "jszip": "^3.9.1",
+    "osu-classes": "^0.6.1",
+    "osu-parsers": "^2.1.1",
+    "pretty-bytes": "^6.0.0",
+    "reacord": "^0.3.4",
+    "react": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/ffmpeg-static": "^3.0.1",
+    "@types/node": "^17.0.24",
+    "@types/react": "^18.0.5",
+    "nodemon": "^2.0.15"
+  }
+}

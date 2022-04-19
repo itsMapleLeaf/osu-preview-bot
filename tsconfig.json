@@ -1,4 +1,15 @@
 {
   "extends": "@itsmapleleaf/configs/tsconfig.base",
-  "exclude": ["node_modules"]
+  // typescript doesn't include cjs and mjs by default :(
+  "include": [
+    "**/*.ts",
+    "**/*.d.ts",
+    "**/*.tsx",
+    "**/*.js",
+    "**/*.cjs",
+    "**/*.*.cjs",
+    "**/*.mjs",
+    "**/*.*.mjs"
+  ],
+  "exclude": ["**/node_modules/**"]
 }
