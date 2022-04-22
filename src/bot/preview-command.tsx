@@ -3,13 +3,13 @@ import prettyBytes from "pretty-bytes"
 import type { ReacordDiscordJs } from "reacord"
 import { Button, Option, Select } from "reacord"
 import * as React from "react"
-import { createBeatmapRenderer } from "./beatmap-renderer"
-import { BeatmapSet } from "./beatmap-set"
-import type { BotCommand } from "./bot-command"
-import { raise } from "./helpers/errors"
-import { renderVideo } from "./render-video"
+import { raise } from "../helpers/errors"
+import { createBeatmapRenderer } from "../osu/beatmap-renderer"
+import { BeatmapSet } from "../osu/beatmap-set"
+import { renderVideo } from "../video/render-video"
+import type { Command } from "./commands"
 
-export function createPreviewCommand(reacord: ReacordDiscordJs): BotCommand {
+export function createPreviewCommand(reacord: ReacordDiscordJs): Command {
   return {
     name: "preview",
     description: "Create a preview video for a beatmap",

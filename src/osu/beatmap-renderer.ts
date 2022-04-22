@@ -1,7 +1,7 @@
 import type { CanvasRenderingContext2D } from "canvas"
 import type { Beatmap, HitObject } from "osu-classes"
 import { SlidableObject } from "osu-parsers"
-import { clamp, lerpClamped } from "./helpers/math"
+import { clamp, lerpClamped } from "../helpers/math"
 
 type Animation = {
   start: number
